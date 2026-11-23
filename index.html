@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Comu · Poli Finance</title>
+<meta name="apple-mobile-web-app-title" content="Comu">
+<meta name="application-name" content="Comu">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#000000">
+<link rel="icon" type="image/png" href="icone.png">
+<link rel="apple-touch-icon" href="icone.png">
+<style>
+  html,body{margin:0;height:100%;background:#000;overflow:hidden}
+  iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:#000}
+  #erro{display:none;color:#ccc;font:15px/1.5 -apple-system,Helvetica,Arial,sans-serif;padding:40px 24px;text-align:center}
+</style>
+</head>
+<body>
+<!--
+  Comu · Poli Finance — página que abre o app sem a faixa "Este aplicativo foi criado por um usuário do Google Apps Script".
+  Troque APP pelo link /exec da implantação (Apps Script → Implantar → Gerenciar implantações → copiar URL do app da Web).
+-->
+<div id="erro">Falta colar o link do app em <b>index.html</b> (linha APP).</div>
+<iframe id="app" title="Comu · Poli Finance" allow="clipboard-write; clipboard-read"></iframe>
+<script>
+var APP = 'COLE_AQUI_O_LINK_DO_APP/exec';
+(function () {
+  if (APP.indexOf('/exec') < 0 || APP.indexOf('COLE_AQUI') === 0) { document.getElementById('erro').style.display = 'block'; return; }
+  var q = new URLSearchParams(location.search), get = function (k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
+  q.set('w', '1');
+  if (get('comu_token')) q.set('t', get('comu_token'));
+  if (get('comu_aparelho')) q.set('a', get('comu_aparelho'));
+  document.getElementById('app').src = APP + '?' + q.toString();
+  // O app avisa quando a pessoa entra ou sai; o login fica guardado nesta página.
+  addEventListener('message', function (e) {
+    if (!/\.googleusercontent\.com$|\.google\.com$/.test(new URL(e.origin).hostname)) return;
+    var d = e.data || {}; if (d.comu !== 'token') return;
+    try {
+      if (d.token) localStorage.setItem('comu_token', d.token); else localStorage.removeItem('comu_token');
+      if (d.aparelho) localStorage.setItem('comu_aparelho', d.aparelho);
+    } catch (x) { }
+  });
+})();
+</script>
+</body>
+</html>
