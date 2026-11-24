@@ -89,7 +89,23 @@ var APP = 'https://script.google.com/macros/s/AKfycbx7LQxndN4OCRThQ2pZFaVRbsy094
     var d = e.data || {};
     if (d.comu === 'pronto') mostrar();
     if (d.comu === 'token') { set('comu_token', d.token); if (d.aparelho) set('comu_aparelho', d.aparelho); mostrar(); }
+    if (d.comu === 'pedirNotif') pedirNotif(e.source);
+    if (d.comu === 'notif') notificar(d.titulo, d.corpo);
   });
+  // Notificações do aparelho (o app pede e manda; a moldura mostra)
+  var reg = null;
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').then(function (r) { reg = r; }).catch(function () { });
+  function estado() { return ('Notification' in window) ? Notification.permission : 'indisponivel'; }
+  function responder(alvo) { try { (alvo || f.contentWindow).postMessage({ comu: 'notifEstado', estado: estado() }, '*'); } catch (x) { } }
+  function pedirNotif(alvo) {
+    if (!('Notification' in window)) { responder(alvo); return; }
+    try { var p = Notification.requestPermission(function () { responder(alvo); }); if (p && p.then) p.then(function () { responder(alvo); }); } catch (x) { responder(alvo); }
+  }
+  function notificar(t, c) {
+    if (estado() !== 'granted') return;
+    var o = { body: c || '', icon: 'icone.png', badge: 'icone.png', tag: 'comu-' + Date.now() };
+    if (reg && reg.showNotification) reg.showNotification(t || 'Comu', o); else try { new Notification(t || 'Comu', o); } catch (x) { }
+  }
   f.src = link + '?' + q.toString();
   setTimeout(function () { if (!pronto) $('msg').textContent = 'O Google está acordando o app…'; }, 5000);
   setTimeout(function () {
